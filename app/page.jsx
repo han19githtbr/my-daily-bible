@@ -82,7 +82,11 @@ export default function Page() {
     setHour(d.getHours());
     setPi({ m: d.getDate() % 3, n: (d.getDate() + 1) % 3 });
     if (new URLSearchParams(location.search).get("tab") === "oracoes") setTab("oracoes");
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").then(() => navigator.serviceWorker.ready).then((reg) => {
+      const urls = performance.getEntriesByType("resource").map((r) => r.name)
+        .filter((u) => u.startsWith(location.origin) || /fonts\.(googleapis|gstatic)\.com/.test(u));
+      reg.active && reg.active.postMessage({ type: "CACHE", urls: [...new Set([location.origin + "/", ...urls])] });
+    }).catch(() => {});
   }, []);
   useEffect(() => {
     if (!s) return;

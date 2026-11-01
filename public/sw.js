@@ -1,4 +1,4 @@
-const C = "mdb-v1";
+const C = "mdb-v2";
 const S = "mdb-settings";
 
 self.addEventListener("install", (e) => {
@@ -24,10 +24,10 @@ self.addEventListener("fetch", (e) => {
     fetch(r)
       .then((res) => {
         const cp = res.clone();
-        if (res.status === 200) caches.open(C).then((c) => c.put(r, cp)).catch(() => {});
+        if (res.status === 200 || res.type === "opaque") caches.open(C).then((c) => c.put(r, cp)).catch(() => {});
         return res;
       })
-      .catch(() => caches.match(r).then((m) => m || caches.match("/")))
+      .catch(() => caches.match(r, { ignoreSearch: true }).then((m) => m || caches.match("/")))
   );
 });
 
@@ -71,5 +71,19 @@ self.addEventListener("notificationclick", (e) => {
       for (const c of cs) if ("focus" in c) { c.navigate(url).catch(() => {}); return c.focus(); }
       return self.clients.openWindow(url);
     })
+  );
+});
+
+// A página envia a lista de arquivos que carregou; guardamos todos para leitura offline.
+self.addEventListener("message", (e) => {
+  if (!e.data || e.data.type !== "CACHE") return;
+  e.waitUntil(
+    caches.open(C).then((c) =>
+      Promise.all(e.data.urls.map((u) =>
+        fetch(u, { mode: u.startsWith(location.origin) ? "same-origin" : "no-cors" })
+          .then((r) => (r.status === 200 || r.type === "opaque") && c.put(u, r))
+          .catch(() => {})
+      ))
+    )
   );
 });
