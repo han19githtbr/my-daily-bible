@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import data from "../data/readings.json";
 
 const KEY = "mdb:v1", LAST = "mdb:last";
-const INIT = { done: {}, notes: {}, ex: {}, rem: { m: false, n: false } };
+const INIT = { done: {}, notes: {}, ex: {}, rem: { m: false, n: false, p: false } };
 const WEEKS = [
   { t: "Fortalecimento e proteção", c: "#3d4fb5", r: [1, 7] },
   { t: "Provisão e vida financeira", c: "#9a7412", r: [8, 14] },
@@ -29,6 +29,13 @@ const PRAYERS = {
   ],
 };
 
+const MY_PRAYER = "Meu Deus, sei que cometi erros no passado e aceito as consequências dos meus erros e das minhas escolhas, mas não deixe que esses erros definam a minha vida. Me dê a chance de eu mudar de vida, de recomeçar para acertar onde errei antes e me tire da estagnação financeira. Me liberte de todo tipo de escassez, e liberte a minha família do espírito de pobreza. Me oriente, me dê discernimento para que eu possa fazer as escolhas certas. Eu te agradeço por tudo que fez na minha vida, na vida da minha família e obrigado por todas as conquistas e todas as provas. Eu coloco a minha vida, a vida da minha família, dos meus amigos e os meus sonhos nas suas mãos. Obrigado por mais um dia e te entrego a noite. Amém.";
+const MSG = {
+  m: ["Bom dia! Hora da oração", "Abra sua leitura de hoje e comece o dia com uma oração."],
+  n: ["Hora de entregar o dia a Deus", "Agradeça por três coisas e descanse em Deus."],
+  p: ["Hora da sua oração", "Reserve um momento para a oração que você escreveu."],
+};
+
 /* ---------- notificações ---------- */
 const canNotify = () => typeof window !== "undefined" && "Notification" in window && "serviceWorker" in navigator;
 async function pushSettings(rem) {
@@ -38,9 +45,9 @@ async function pushSettings(rem) {
 }
 async function notify(k) {
   if (!canNotify() || Notification.permission !== "granted") return;
-  const reg = await navigator.serviceWorker.ready, m = k === "m";
-  await reg.showNotification(m ? "Bom dia! Hora da oração" : "Hora de entregar o dia a Deus", {
-    body: m ? "Abra sua leitura de hoje e comece o dia com uma oração." : "Agradeça por três coisas e descanse em Deus.",
+  const reg = await navigator.serviceWorker.ready;
+  await reg.showNotification(MSG[k][0], {
+    body: MSG[k][1],
     icon: "/icon-192.png", badge: "/icon-192.png", tag: "prayer-" + k, data: { url: "/?tab=oracoes" },
   });
 }
@@ -57,7 +64,7 @@ async function enableNotif() {
 async function tick(rem) {
   const d = new Date(), h = d.getHours(), m = d.getMinutes(), day = d.toDateString();
   const last = JSON.parse(localStorage.getItem(LAST) || "{}");
-  for (const [k, hit] of [["m", h === 7 && m < 30], ["n", h === 23 && m < 30]]) {
+  for (const [k, hit] of [["m", h === 7 && m < 30], ["p", h === 21 && m < 30], ["n", h === 23 && m < 30]]) {
     if (rem[k] && hit && last[k] !== day) {
       last[k] = day;
       localStorage.setItem(LAST, JSON.stringify(last));
@@ -208,7 +215,7 @@ export default function Page() {
           </section>
           <section className="card tap" onClick={() => setTab("oracoes")}>
             <b>Lembretes de oração</b>
-            <p>{s.rem.m || s.rem.n ? `Ativos: ${[s.rem.m && "7h", s.rem.n && "23h"].filter(Boolean).join(" e ")}.` : "Ative os avisos das 7h e das 23h."}</p>
+            <p>{s.rem.m || s.rem.n ? `Ativos: ${[s.rem.m && "7h", s.rem.p && "21h", s.rem.n && "23h"].filter(Boolean).join(" e ")}.` : "Ative os avisos das 7h, 21h e 23h."}</p>
           </section>
         </>
       )}
@@ -238,6 +245,16 @@ export default function Page() {
               <button className="ghost" onClick={() => setPi((p) => ({ ...p, [k]: (p[k] + 1) % 3 }))}>Outra oração</button>
             </section>
           ))}
+          <section className="card pray p">
+            <div className="phead">
+              <h2>Minha oração</h2>
+              <button role="switch" aria-checked={!!s.rem.p} className={"sw" + (s.rem.p ? " on" : "")} onClick={() => toggleRem("p")}>
+                <span className="sr">Lembrete às 21h</span>
+              </button>
+            </div>
+            <p className="when">Lembrete diário às 21h{s.rem.p ? ": ativado" : ": desativado"}</p>
+            <p className="ptext">{MY_PRAYER}</p>
+          </section>
           {msg && <p className="alert" role="status">{msg}</p>}
           <section className="card">
             <b>Como os avisos funcionam</b>

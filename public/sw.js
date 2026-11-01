@@ -1,4 +1,4 @@
-const C = "mdb-v2";
+const C = "mdb-v3";
 const S = "mdb-settings";
 
 self.addEventListener("install", (e) => {
@@ -37,9 +37,13 @@ const read = async (c, k) => {
 };
 
 async function show(k) {
-  const m = k === "m";
-  await self.registration.showNotification(m ? "Bom dia! Hora da oração" : "Hora de entregar o dia a Deus", {
-    body: m ? "Abra sua leitura de hoje e comece o dia com uma oração." : "Agradeça por três coisas e descanse em Deus.",
+  const MSG = {
+    m: ["Bom dia! Hora da oração", "Abra sua leitura de hoje e comece o dia com uma oração."],
+    n: ["Hora de entregar o dia a Deus", "Agradeça por três coisas e descanse em Deus."],
+    p: ["Hora da sua oração", "Reserve um momento para a oração que você escreveu."],
+  };
+  await self.registration.showNotification(MSG[k][0], {
+    body: MSG[k][1],
     icon: "/icon-192.png",
     badge: "/icon-192.png",
     tag: "prayer-" + k,
@@ -53,7 +57,7 @@ async function check() {
   const rem = await read(c, "/__settings");
   const last = await read(c, "/__last");
   const d = new Date(), h = d.getHours(), day = d.toDateString();
-  for (const [k, ok] of [["m", h >= 7 && h < 12], ["n", h === 23]]) {
+  for (const [k, ok] of [["m", h >= 7 && h < 12], ["p", h >= 21 && h < 23], ["n", h === 23]]) {
     if (rem[k] && ok && last[k] !== day) { last[k] = day; await show(k); }
   }
   await c.put("/__last", new Response(JSON.stringify(last)));
