@@ -15,6 +15,12 @@ const weekOf = (n) => WEEKS.findIndex((w) => n >= w.r[0] && n <= w.r[1]);
 const EXTRA = {
   lib: { t: "Libertação", c: "#5b3f9e", intro: "Leia uma passagem por vez, depois da leitura do dia ou nos dias mais pesados. Ore com sinceridade, entregando a Deus o que o prende." },
   pro: { t: "Provisão", c: "#9a7412", intro: "A Bíblia une oração e ação: além de pedir, vale planejar, trabalhar com diligência, honrar compromissos e semear com generosidade." },
+  rel: { t: "Relacionamentos", c: "#b0476a", intro: "Passagens sobre amor, amizade e limites saudáveis. Leia uma por vez e ore pelas pessoas da sua vida.",
+    prayer: "Senhor, guarda o meu coração e ensina-me a amar como Tu amas: com paciência, verdade e perdão. Afasta de mim relacionamentos que me ferem e me afastam de Ti, e aproxima pessoas que me edificam. Dá-me sabedoria para escolher bem, coragem para impor limites com amor e humildade para pedir perdão. Que meus amores e minhas amizades honrem o Teu nome. Amém." },
+  ans: { t: "Ansiedade financeira", c: "#167a85", intro: "Quando o dinheiro aperta e a mente não para. Leia devagar e entregue o peso a Deus, sem deixar de planejar e trabalhar.",
+    prayer: "Pai, a minha situação financeira tem pesado no meu coração. Eu lanço sobre Ti esta ansiedade, porque Tu cuidas de mim. Dá-me a paz que excede o entendimento, sabedoria para organizar o que tenho, diligência para trabalhar e abre as portas que só Tu podes abrir. Ensina-me a confiar no Teu suprimento hoje, um dia de cada vez. Amém." },
+  cmp: { t: "Comparação", c: "#3d4fb5", intro: "Para os dias em que a vida dos outros parece maior que a sua. Cada caminho tem seu tempo e seu propósito.",
+    prayer: "Senhor, perdoa-me quando olho para a vida dos outros e esqueço o que já fizeste na minha. Cura em mim a inveja e a pressa. Lembra-me de que fui feito por Ti, com propósito e no Teu tempo. Ensina-me a me alegrar com quem prospera, a agradecer pelo meu caminho e a seguir-Te sem me medir pelos outros. Amém." },
 };
 const PRAYERS = {
   m: [
@@ -273,6 +279,12 @@ export default function Page() {
             ))}
           </div>
           <p className="small">{EXTRA[xk].intro}</p>
+          {EXTRA[xk].prayer && (
+            <section className="card pray x" style={{ "--c": EXTRA[xk].c }}>
+              <h2>Oração sugerida</h2>
+              <p className="ptext">{EXTRA[xk].prayer}</p>
+            </section>
+          )}
           {data.extras[xk].map((x, i) => (
             <Row key={i} n={i + 1} ref_={x.ref} focus={x.focus} done={!!s.ex[xk + i]} c={EXTRA[xk].c} onClick={() => setOpen({ k: xk, i })} />
           ))}
